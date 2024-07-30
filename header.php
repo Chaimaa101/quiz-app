@@ -32,7 +32,7 @@
                     <a class="link" href="category_manage.php">Manage category</a>
                 </li>
                 <li class="item">
-                    <a class="link" href="add_question.php">Add category</a>
+                    <a class="link" href="add_question.php">Add Question</a>
                 </li>
                 <li class="item">
                     <a class="link" href="questions_manage.php">Manage Questions</a>

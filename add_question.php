@@ -1,7 +1,8 @@
 <?php
-session_start();
+
 include('database/config.php');
 include('header.php');
+
 function getCategories($conn)
 {
     $sql = "SELECT * FROM categories";

@@ -231,9 +231,6 @@ if (isset($categoryId) && isset($difficultyLevel)) {
             border-radius: 50%;
         }
 
-        .dark-theme {
-            background-color: #222;
-        }
 
         .timer {
             font-size: 1.5rem;
@@ -254,107 +251,110 @@ if (isset($categoryId) && isset($difficultyLevel)) {
             font-weight: bold;
             color: #6f42c1;
         }
+
+        .show {
+            margin: 200px auto 50px;
+            padding: 30px;
+            text-align: center;
+        }
     </style>
 </head>
 
-<body>
-    <?php if ($score !== null) { ?>
-        <div class="results-screen">
-            <h2>Your Results</h2>
-            <p>Your score: <?= $score; ?></p>
-            <p>Total questions: <?= count($answers); ?></p>
-        </div>
-    <?php } elseif (!empty($questions)) { ?>
-        <form id="quizForm" action="results.php" method="post">
-            <?php foreach ($questions as $index => $question) { ?>
-                <div class="wrapper question-slide" id="q<?= $index + 1 ?>">
-                    <div class="wrap">
-                        <div class="timer" id="timer-<?= $index + 1 ?>"><span class="fa-solid fa-stopwatch-20"></span> 30</div>
-                        <div class="text-center pb-4">
-                            <div class="question-number"><span id="number"><?= $index + 1 ?></span> of <?= $totalQuestions ?></div>
-                        </div>
-                        <div style="height: 50px;"></div>
-                        <div class="h4 font-weight-bold text-center"><?= $index + 1 . ". " . $question['question_text'] ?></div>
-                        <div class="pt-4">
-                            <?php
-                            $options = getOptions($conn, $question['id']);
-                            foreach ($options as $option) { ?>
-                                <label class="options"><?= $option['option_text'] ?>
-                                    <input type="radio" name="answers[<?= $question['id'] ?>]" value="<?= $option['id'] ?>" required>
-                                    <span class="checkmark"></span>
-                                </label>
-                            <?php } ?>
-                        </div>
-                        <div class="d-flex justify-content-between pt-2">
-                            <?php if ($index > 0) { ?>
-                                <button type="button" class="btn btn-info prev" data-prev="<?= $index ?>"><span class="fas fa-arrow-left"></span> Previous </button>
-                            <?php } ?>
-                            <?php if ($index < $totalQuestions - 1) { ?>
-                                <button type="button" class="btn btn-primary next" data-next="<?= $index + 2 ?>">Next <span class="fas fa-arrow-right"></span></button>
-                            <?php } else { ?>
-                                <button type="submit" name="submit" class="btn btn-success">Submit</button>
-                            <?php } ?>
-                        </div>
+<?php if (!empty($questions)) { ?>
+    <form id="quizForm" action="results.php" method="post">
+        <?php foreach ($questions as $index => $question) { ?>
+            <div class="wrapper question-slide" id="q<?= $index + 1 ?>">
+                <div class="wrap">
+                    <div class="timer" id="timer-<?= $index + 1 ?>"><span class="fa-solid fa-stopwatch-20"></span> 30</div>
+                    <div class="text-center pb-4">
+                        <div class="question-number"><span id="number"><?= $index + 1 ?></span> of <?= $totalQuestions ?></div>
+                    </div>
+                    <div style="height: 50px;"></div>
+                    <div class="h4 font-weight-bold text-center"><?= $index + 1 . ". " . $question['question_text'] ?></div>
+                    <div class="pt-4">
+                        <?php
+                        $options = getOptions($conn, $question['id']);
+                        foreach ($options as $option) { ?>
+                            <label class="options"><?= $option['option_text'] ?>
+                                <input type="radio" name="answers[<?= $question['id'] ?>]" value="<?= $option['id'] ?>">
+                                <span class="checkmark"></span>
+                            </label>
+                        <?php } ?>
+                    </div>
+                    <div class="d-flex justify-content-between pt-2">
+                        <?php if ($index > 0) { ?>
+                            <button type="button" class="btn btn-info prev" data-prev="<?= $index ?>"><span class="fas fa-arrow-left"></span> Previous </button>
+                        <?php } ?>
+                        <?php if ($index < $totalQuestions - 1) { ?>
+                            <button type="button" class="btn btn-primary next" data-next="<?= $index + 2 ?>">Next <span class="fas fa-arrow-right"></span></button>
+                        <?php } else { ?>
+                            <button type="submit" name="submit" class="btn btn-success">Submit</button>
+                        <?php } ?>
                     </div>
                 </div>
-            <?php } ?>
-        </form>
-    <?php } else { ?>
+            </div>
+        <?php } ?>
+    </form>
+<?php } else { ?>
+    <div class="show">
         <p>No questions found for the selected category and difficulty level.</p>
-    <?php } ?>
+    </div>
+<?php } ?>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const nextButtons = document.querySelectorAll('.next');
+        const prevButtons = document.querySelectorAll('.prev');
+        const questionSlides = document.querySelectorAll('.question-slide');
+        let timerInterval;
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const nextButtons = document.querySelectorAll('.next');
-            const prevButtons = document.querySelectorAll('.prev');
-            const questionSlides = document.querySelectorAll('.question-slide');
-            let timerInterval;
+        function startTimer(index) {
+            let timer = document.getElementById(`timer-${index}`);
+            let timeLeft = 30;
 
-            function startTimer(index) {
-                let timer = document.getElementById(`timer-${index}`);
-                let timeLeft = 30;
-
-                timerInterval = setInterval(function() {
-                    if (timeLeft <= 0) {
-                        clearInterval(timerInterval);
-                        showNextQuestion(index + 1);
-                    } else {
-                        timer.textContent = timeLeft;
-                    }
-                    timeLeft -= 1;
-                }, 1000);
-            }
-
-            function showNextQuestion(nextId) {
-                questionSlides.forEach(slide => slide.style.display = 'none');
-                if (nextId <= questionSlides.length) {
-                    document.getElementById('q' + nextId).style.display = 'block';
-                    startTimer(nextId);
+            timerInterval = setInterval(function() {
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    showNextQuestion(index + 1);
+                } else {
+                    timer.textContent = timeLeft;
                 }
+                timeLeft -= 1;
+            }, 1000);
+        }
+
+        function showNextQuestion(nextId) {
+            questionSlides.forEach(slide => slide.style.display = 'none');
+            if (nextId <= questionSlides.length) {
+                document.getElementById('q' + nextId).style.display = 'block';
+                startTimer(nextId);
             }
+        }
 
-            nextButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    clearInterval(timerInterval);
-                    const nextId = this.dataset.next;
-                    showNextQuestion(nextId);
-                });
+        nextButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                clearInterval(timerInterval);
+                const nextId = this.dataset.next;
+                showNextQuestion(nextId);
             });
-
-            prevButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    clearInterval(timerInterval);
-                    const prevId = this.dataset.prev;
-                    questionSlides.forEach(slide => slide.style.display = 'none');
-                    document.getElementById('q' + prevId).style.display = 'block';
-                    startTimer(prevId);
-                });
-            });
-
-            startTimer(1);
         });
-    </script>
-    
+
+        prevButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                clearInterval(timerInterval);
+                const prevId = this.dataset.prev;
+                questionSlides.forEach(slide => slide.style.display = 'none');
+                document.getElementById('q' + prevId).style.display = 'block';
+                startTimer(prevId);
+            });
+        });
+
+        startTimer(1);
+    });
+</script>
+
+
+<?php include('footer.php'); ?>
+
 </body>
 
 </html>
